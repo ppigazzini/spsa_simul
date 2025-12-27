@@ -1,10 +1,16 @@
 % doc/theoretical_basis.tex
 \documentclass[11pt]{article}
 
-% Encoding and fonts (compatible with pdflatex)
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
+% Engine-aware fonts/encoding (best practice: Dec 2025)
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \defaultfontfeatures{Ligatures=TeX}
+\fi
 
 % Math and theorem packages
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
@@ -15,15 +21,19 @@
 \usepackage{geometry}
 \usepackage{microtype}
 \usepackage{booktabs}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
 
 \geometry{margin=1in}
 
 % Theorem environments
+\theoremstyle{plain}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
 \newtheorem{example}{Example}
 \newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
 \newtheorem{remark}{Remark}
-\newtheorem{lemma}{Lemma}
 
 \title{Theoretical Basis of the SPSA Process}
 \author{}
@@ -49,12 +59,8 @@ to a new vector $\bm{\theta}_{i+1}\in\mathbb{R}^n$ we play a match of $\bm{\thet
 \begin{equation}
   \bm{\theta}_{i+1} =
   \begin{cases}
-    \bm{\theta}_i + r_i \bm{c}_i & \text{in case of a win}, \
-
-\[4pt]
-    \bm{\theta}_i                & \text{in case of a draw}, \
-
-\[4pt]
+    \bm{\theta}_i + r_i \bm{c}_i & \text{in case of a win},\\[4pt]
+    \bm{\theta}_i                & \text{in case of a draw},\\[4pt]
     \bm{\theta}_i - r_i \bm{c}_i & \text{in case of a loss.}
   \end{cases}
   \label{eq:update}
