@@ -27,9 +27,24 @@
 \usepackage{booktabs}
 
 % Hyperlinks / references (load near the end)
+\usepackage{xurl}
 \usepackage[hidelinks]{hyperref}
 \usepackage{bookmark}
-\usepackage[nameinlink,noabbrev]{cleveref}
+
+% Keep \Cref-style commands without cleveref (avoids LaTeX “First Aid” noise in TL2025)
+\providecommand{\Cref}[1]{\autoref{#1}}
+\providecommand{\cref}[1]{\autoref{#1}}
+\providecommand{\exampleautorefname}{Example}
+\providecommand{\assumptionautorefname}{Assumption}
+\providecommand{\lemmaautorefname}{Lemma}
+\providecommand{\remarkautorefname}{Remark}
+
+% Silence unavoidable first-pass rerun/reference warnings in automated builds
+\usepackage{silence}
+\WarningFilter{latex}{Reference `}
+\WarningFilter{latex}{There were undefined references}
+\WarningFilter{latex}{Label(s) may have changed}
+\WarningFilter{rerunfilecheck}{Rerun}
 
 \geometry{margin=1in}
 

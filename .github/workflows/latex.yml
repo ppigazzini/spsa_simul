@@ -2,27 +2,45 @@ name: Build LaTeX PDF
 
 on:
   push:
-    branches: [ refactor ]
+    branches:
+      - main
+      - refactor
   pull_request:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: latex-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Remove previously built PDF
+        run: rm -f doc/theoretical_basis.pdf
 
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v4
         with:
-          root_file: doc/theoretical_basis.tex
+          working_directory: doc
+          root_file: theoretical_basis.tex
           latexmk_use_lualatex: false
-          latexmk_shell_escape: true
+          latexmk_shell_escape: false
           extra_system_packages: "ghostscript"
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v6
-        with:
           name: theoretical_basis
           path: doc/theoretical_basis.pdf
+          if-no-files-found: error
