@@ -41,6 +41,7 @@ jobs:
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v6
+        with:
           name: theoretical_basis
           path: doc/theoretical_basis.pdf
           if-no-files-found: error
