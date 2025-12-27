@@ -1,9 +1,8 @@
 \documentclass[11pt]{article}
 
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+% Modern math & typography packages
 \usepackage{lmodern}
-\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
 \usepackage{bm}
 \usepackage{mathtools}
 \usepackage{geometry}
@@ -13,6 +12,7 @@
 
 \geometry{margin=1in}
 
+% Theorem environments
 \newtheorem{example}{Example}
 \newtheorem{assumption}{Assumption}
 \newtheorem{remark}{Remark}
@@ -54,9 +54,7 @@ to a new vector $\bm{\theta}_{i+1} \in \mathbb{R}^n$ we play a match of $\bm{\th
   \label{eq:update}
 \end{equation}
 
-Since we have biased\footnote{For the purpose of exposition we assume that the games are played with an opening book that
-is perfectly balanced. In practice this will never be satisfied but one may simulate it by replaying
-every game with reversed colors. This will be assumed silently below.}
+Since we have biased\footnote{We assume games are played with a perfectly balanced opening book. In practice this is approximated by replaying each game with reversed colors.}
 the update of $\bm{\theta}_i$ in the direction of the engine that won the
 game, the hope is that $\bm{\theta}_i$ for $i > 0$ will yield a stronger engine than $\bm{\theta}_0$.
 
@@ -86,7 +84,7 @@ Let $c_0,\dots,c_{n-1} > 0$ and put
 
 
 \[
-  \bm{c}_i = \sum_{j=0}^{n-1} \alpha_{i,j} c_j \bm{e}_j
+  \bm{c}_i = \sum_{j=0}^{n-1} \alpha_{i,j} c_j \bm{e}_j,
 \]
 
 
@@ -102,40 +100,32 @@ This is the SPSA algorithm.
 \end{example}
 
 \begin{assumption}
-We allow $(\bm{c}_i)_{i \ge 0}$ to be stochastic but throughout we assume that
-$(\bm{c}_i \bm{c}_i^\top)_i$ stays close to its short–term running average / expectation value (denoted by
-$\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$) and that the latter is an invertible $n \times n$ matrix.
+We assume $(\bm{c}_i \bm{c}_i^\top)_i$ stays close to its short–term running average
+$\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$ and that this matrix is invertible.
 \end{assumption}
 
 \section{Main results}
 
 \subsection{Statements}
 
-Let $e$ be the function which maps $\bm{\theta} \in \mathbb{R}^n$ to Elo. Assume
-that $e$ is (approximately) quadratic and attains its maximum value at $\bm{\theta} = \bm{\theta}^\ast$. We
-normalize $e$ such that $e(\bm{\theta}^\ast) = 0$.
+Let $e$ map $\bm{\theta} \in \mathbb{R}^n$ to Elo. Assume $e$ is approximately quadratic and attains its maximum at $\bm{\theta}^\ast$, normalized so that $e(\bm{\theta}^\ast)=0$.
 
-Apply the generalized SPSA algorithm with constant $r$ and with $\bm{c}_i$ satisfying
-Assumption~\ref{ass:Ecct} below such that $\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$ is constant. We will heuristically derive some
-reasonable approximations.
+Apply generalized SPSA with constant $r$ and with $\bm{c}_i$ satisfying Assumption~\ref{ass:Ecct}.
 
 \begin{assumption}
 \label{ass:Ecct}
-For all $i$, $\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$ exists, is constant in $i$, and is invertible.
+$\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$ exists, is constant in $i$, and is invertible.
 \end{assumption}
 
 \begin{enumerate}
-\item Asymptotically the expectation value of $e(\bm{\theta}_i)$ will satisfy
+\item Asymptotically,
 \begin{equation}
   \mathbb{E}\bigl(e(\bm{\theta}_i)\bigr)
-  \;\approx\;
+  \approx
   - \frac{r}{8}\, C\, n (1-d),
   \label{eq:main1}
 \end{equation}
-with $d \in [0,1]$ being equal to the draw ratio\footnote{With an unbalanced book and replayed color–reversed games the factor $1-d$ in the formula
-can be reduced to $1-d-4b^2$ where $b$ is the RMS bias of the opening book (computed using
-$0, 1/2, 1$ scoring, see~\cite{AccountingIdentity}). The same holds true for similar formulas below.}
-and
+where $d$ is the draw ratio and
 
 
 \[
@@ -144,46 +134,18 @@ and
 
 
 
-\item Let $0 \le \gamma \le 1$ and define $z$ by
-
-
-\[
-  \gamma = \mathbb{P}(X < z) \quad\text{for}\quad X \sim \chi^2_n.
-\]
-
-
-For example, for $\gamma = 0.95$ we have in low dimensions:
-\begin{center}
-\begin{tabular}{@{}cc@{}}
-\toprule
-\textbf{dim} & \textbf{$z$} \\
-\midrule
-1 & 3.8414588206941236 \\
-2 & 5.9914645471079799 \\
-3 & 7.8147279032511765 \\
-4 & 9.4877290367811540 \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-With probability $\gamma$, $e(\bm{\theta}_i)$ will asymptotically satisfy
+\item Let $0 \le \gamma \le 1$ and define $z$ by $\gamma = \mathbb{P}(X < z)$ for $X \sim \chi^2_n$.
+Then with probability $\gamma$,
 \begin{equation}
   e(\bm{\theta}_i)
-  \;\gtrsim\;
+  \gtrsim
   - \frac{r}{8}\, C\, z (1-d).
   \label{eq:main2}
 \end{equation}
 
-\item The expectation value of $\bm{\theta}_i$ will converge linearly towards $\bm{\theta}^\ast$ as
+\item The expectation $\mathbb{E}(\bm{\theta}_i)$ converges linearly to $\bm{\theta}^\ast$ with time constant
 \begin{equation}
-  \|\mathbb{E}(\bm{\theta}_i - \bm{\theta}^\ast)\|
-  \approx
-  \|\bm{\theta}_0 - \bm{\theta}^\ast\| \, e^{-i/\lambda}
-  \label{eq:main3}
-\end{equation}
-with the time constant $\lambda$ bounded by
-\begin{equation}
-  \lambda \;\approx\; \frac{C}{2 r \mu},
+  \lambda \approx \frac{C}{2 r \mu},
   \label{eq:lambda}
 \end{equation}
 where $\mu$ is the smallest eigenvalue of
@@ -197,30 +159,28 @@ where $\mu$ is the smallest eigenvalue of
 \end{enumerate}
 
 \begin{remark}
-We see from (3) that the nicest possible case is when
+The ideal case is
 
 
 \[
-  \mathbb{E}(\bm{c}_i \bm{c}_i^\top)\, \operatorname{Hess}(e)(\bm{\theta}^\ast) = \mu I_{n}.
+  \mathbb{E}(\bm{c}_i \bm{c}_i^\top)\, \operatorname{Hess}(e)(\bm{\theta}^\ast) = \mu I_n,
 \]
 
 
-It follows from the derivation below that in that case the update~\eqref{eq:update} is (on average)
-proportional to
+in which the update~\eqref{eq:update} is (on average)
 
 
 \[
-  r\, \operatorname{Hess}(e)(\bm{\theta}^\ast)^{-1} \bigl(\nabla e\bigr)(\bm{\theta}_i),
+  r\, \operatorname{Hess}(e)(\bm{\theta}^\ast)^{-1} (\nabla e)(\bm{\theta}_i),
 \]
 
 
-which is in particular the optimal direction for gradient descent.
+the optimal gradient–descent direction.
 \end{remark}
 
 \subsection{Derivations}
 
-Below vectors are always column vectors. We will also switch
-to continuous time. Hence we write $\bm{\theta}(t)$ (or simply $\bm{\theta}$) instead of $\bm{\theta}_i$, etc.
+Below vectors are always column vectors. We switch to continuous time and write $\bm{\theta}(t)$ instead of $\bm{\theta}_i$.
 
 We can think of the dynamics of $\bm{\theta}$ as a discrete version of the continuous process
 \begin{equation}
@@ -228,8 +188,7 @@ We can think of the dynamics of $\bm{\theta}$ as a discrete version of the conti
   = r \bm{c}\,\bigl(\mu_{\theta,\bm{c}}\,dt + \sigma_{\theta,\bm{c}}\,dW_t\bigr),
 \end{equation}
 where $(\mu_{\theta,\bm{c}}, \sigma_{\theta,\bm{c}})$ are the mean and standard deviation of a single game between
-parameters $\bm{\theta} \pm \bm{c}$ (scored as $-1,0,1$) and $W_t$ is a Wiener process (Brownian motion).
-We simplify further and assume that $\sigma_{\theta,\bm{c}}$ is independent of $\bm{\theta}, \bm{c}$ so that
+parameters $\bm{\theta} \pm \bm{c}$ (scored as $-1,0,1$) and $W_t$ is a Wiener process. We assume $\sigma_{\theta,\bm{c}}$ is independent of $\bm{\theta}, \bm{c}$ so that
 \begin{equation}
   \sigma_{\theta,\bm{c}}^2 = 1 - d,
   \label{eq:sigma}
@@ -251,8 +210,7 @@ and hence
     + r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t.
 \end{equation}
 
-We now replace $\bm{c}\bm{c}^\top$ by its short–term average / expectation value which we denote
-by $\mathbb{E}(\bm{c}\bm{c}^\top)$ and we put
+We now replace $\bm{c}\bm{c}^\top$ by its short–term average / expectation value $\mathbb{E}(\bm{c}\bm{c}^\top)$ and set
 
 
 \[
@@ -260,19 +218,18 @@ by $\mathbb{E}(\bm{c}\bm{c}^\top)$ and we put
 \]
 
 
-Note that $A$ is symmetric. We obtain
+Note that $A$ is symmetric. Then
 \begin{equation}
   d\bm{\theta}_t
   = 2 A (\nabla f)(\bm{\theta})\,dt + r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t.
 \end{equation}
 
-The conversion between $f$ and $e$ is approximately given by
+The conversion between $f$ and $e$ is approximately
 \begin{equation}
   f(\bm{\theta}) = \frac{e(\bm{\theta})}{C}.
   \label{eq:f-e}
 \end{equation}
-So $f$ is approximately quadratic as well. Hence (translating such that $\bm{\theta}^\ast = \bm{0}$)
-we may write
+So $f$ is approximately quadratic. Translating so that $\bm{\theta}^\ast = \bm{0}$, we may write
 
 
 \[
@@ -280,7 +237,7 @@ we may write
 \]
 
 
-with $E$ a positive–definite symmetric $n \times n$ matrix. So
+with $E$ a positive–definite symmetric $n \times n$ matrix. Thus
 
 
 \[
@@ -288,13 +245,13 @@ with $E$ a positive–definite symmetric $n \times n$ matrix. So
 \]
 
 
-from which we get
+and
 \begin{equation}
   d\bm{\theta}_t
   = -2 A E \bm{\theta}\,dt + r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t.
 \end{equation}
 
-The solution of the corresponding homogeneous equation
+The corresponding homogeneous equation
 
 
 \[
@@ -302,7 +259,7 @@ The solution of the corresponding homogeneous equation
 \]
 
 
-is given by
+has solution
 
 
 \[
@@ -310,8 +267,7 @@ is given by
 \]
 
 
-where $\bm{D}$ is a constant column vector. We now solve the inhomogeneous system
-using variation of constants (i.e.\ we make $\bm{D}$ depend on $t$). We get
+where $\bm{D}$ is constant. Using variation of constants (letting $\bm{D}$ depend on $t$), we get
 
 
 \[
@@ -336,7 +292,7 @@ So
     + r \sigma_{\theta,\bm{c}} \int_0^t \exp(2 A E (s-t))\,\bm{c}\,dW_s.
 \end{equation}
 
-Thus $\bm{\theta}(t)$ is multivariate normal with expectation value
+Thus $\bm{\theta}(t)$ is multivariate normal with expectation
 
 
 \[
@@ -346,9 +302,9 @@ Thus $\bm{\theta}(t)$ is multivariate normal with expectation value
 \]
 
 
-from which we deduce the convergence behaviour in (3), using the conversion~\eqref{eq:f-e} combined with~\eqref{eq:sigma}.
+from which the convergence in (3) follows, using~\eqref{eq:f-e} and~\eqref{eq:sigma}.
 
-We now calculate the covariance of $\bm{\theta}(t)$. Using the stochastic integral term and again replacing $\bm{c}\bm{c}^\top$ by its
+Now for the covariance. Using the stochastic integral term and again replacing $\bm{c}\bm{c}^\top$ by its
 average, we obtain
 \begin{align*}
   \operatorname{Cov}(\bm{\theta}(t))
@@ -360,7 +316,7 @@ average, we obtain
      \int_0^t \exp\bigl(4 E A (s-t)\bigr)\,A\,ds.
 \end{align*}
 
-Under the simplifying assumption that $E$ and $A$ commute, we get
+Assuming $E$ and $A$ commute, we get
 
 
 \[
@@ -379,7 +335,7 @@ Hence asymptotically
 \]
 
 
-and so asymptotically the distribution of $\bm{\theta}$ is
+and
 
 
 \[
@@ -387,8 +343,6 @@ and so asymptotically the distribution of $\bm{\theta}$ is
 \]
 
 
-
-Recall the following.
 
 \begin{lemma}
 Let $E$ be a positive–definite symmetric $n \times n$ matrix and
@@ -410,7 +364,7 @@ Then
 \end{lemma}
 
 \begin{proof}
-We may write $E = P P^\top$ with $P$ invertible. Put $\bm{Y} = P^{-1} \bm{X}$. Then
+Write $E = P P^\top$ with $P$ invertible. Put $\bm{Y} = P^{-1} \bm{X}$. Then
 
 
 \[
@@ -434,11 +388,11 @@ Hence $\bm{Y} \sim \mathcal{N}(\bm{0}, I)$ and thus $\bm{Y}^\top \bm{Y} \sim \ch
 
 \end{proof}
 
-From this lemma and the asymptotic covariance we obtain that, up to scaling, $e(\bm{\theta})$ follows (asymptotically) a chi–square law, which yields the qualitative behaviour stated in (1) and (2), once we translate back via~\eqref{eq:f-e} and~\eqref{eq:sigma}.
+From this and the asymptotic covariance we obtain that, up to scaling, $e(\bm{\theta})$ asymptotically follows a chi–square law, yielding the behaviour in (1) and (2) after translating via~\eqref{eq:f-e} and~\eqref{eq:sigma}.
 
 \subsection{The case of diagonal Hessian}
 
-In this section we assume
+Assume
 
 
 \[
@@ -446,7 +400,7 @@ In this section we assume
 \]
 
 
-and furthermore that we are in the situation of Example~1.2 so that
+and that we are in the situation of Example~1.2 so that
 
 
 \[
@@ -455,11 +409,11 @@ and furthermore that we are in the situation of Example~1.2 so that
 
 
 
-Then Statement (3) may be refined as follows.
+Then Statement (3) refines as follows.
 
 \begin{enumerate}
 \setcounter{enumi}{3}
-\item The expectation value of $\theta_j(t)$, $j = 1,\dots,n$, will converge linearly towards
+\item The expectation of $\theta_j(t)$, $j = 1,\dots,n$, converges towards
 $\theta_j^\ast$ as
 
 
@@ -470,7 +424,7 @@ $\theta_j^\ast$ as
 \]
 
 
-with the time constant $\lambda_j$ given by
+with
 \begin{equation}
   \lambda_j
   = \frac{C}{8 r c_j^2 \varepsilon_j}.
@@ -478,8 +432,7 @@ with the time constant $\lambda_j$ given by
 \end{equation}
 \end{enumerate}
 
-We will now discuss some more detailed results. We have that each $\theta_j(t)$ is normally
-distributed, and moreover
+Each $\theta_j(t)$ is normally distributed, and
 
 
 \[
@@ -490,7 +443,7 @@ distributed, and moreover
 
 
 
-In particular we obtain
+In particular,
 
 
 \[
@@ -512,16 +465,11 @@ and
 
 
 
-Furthermore $e(\bm{\theta}(t))$ follows a generalized chi–square distribution~\cite{wiki:generalized-chi2}. The SPSA simula\-tor~\cite{spsa_simul}
-contains routines to calculate the cumulative distribution function (CDF) and
-the percent point function (PPF) for the generalized chi–square distribution. The CDF
-routine was originally based on MATLAB code written by Abhranil Das~\cite{Das}
-and is based on Ruben's algorithm~\cite{Ruben}. Essentially, in Ruben's algorithm one develops
-the characteristic function $\varphi(t)$ of a generalized chi–square distribution as a power series in
-$(1-2 i t \rho)^{-1/2}$ for a suitably chosen $\rho$. This leads to a description of the generalized
-chi–square distribution as a mixture of ordinary scaled $\chi^2_{n-2i}$–distributions for $i \ge 0$.
+Furthermore $e(\bm{\theta}(t))$ follows a generalized chi–square distribution~\cite{wiki:generalized-chi2}. The SPSA simulator~\cite{spsa_simul}
+contains routines to compute the CDF and PPF for this distribution, based on MATLAB code by Abhranil Das~\cite{Das} and on Ruben's algorithm~\cite{Ruben}. Ruben's method expands the characteristic function $\varphi(t)$ as a power series in
+$(1-2 i t \rho)^{-1/2}$ for suitable $\rho$, yielding a mixture of scaled $\chi^2_{n-2i}$–distributions for $i \ge 0$.
 
-It follows from Ruben's formulas that if
+If
 
 
 \[
@@ -530,7 +478,7 @@ It follows from Ruben's formulas that if
 \]
 
 
-is small, then the distribution of $e(\bm{\theta}(t))$ satisfies approximately
+is small, then approximately
 
 
 \[
@@ -539,7 +487,7 @@ is small, then the distribution of $e(\bm{\theta}(t))$ satisfies approximately
 
 
 
-We have also shown that asymptotically
+Asymptotically,
 
 
 \[
@@ -557,11 +505,9 @@ so
 \]
 
 
-serve as scale factors to translate asymptotic location quantities (e.g.\ mean and
-percentiles) into the corresponding quantities at time $t$ for $t \gg 0$.
+act as scale factors to map asymptotic location quantities (means, percentiles, etc.) to their values at finite $t$ for $t \gg 0$.
 
-Let us finally note that if $c_j^2 \varepsilon_j$ is independent of $j$ so that we can put $\lambda = \lambda_j$, then
-we get the following elegant formula
+If $c_j^2 \varepsilon_j$ is independent of $j$, we can set $\lambda = \lambda_j$ and obtain
 \begin{equation}
   \mathbb{E}\bigl(e(\bm{\theta}(t))\bigr)
   = \mathbb{E}\bigl(e(\bm{\theta}(0))\bigr)\exp(-2t/\lambda)
@@ -571,9 +517,7 @@ we get the following elegant formula
 
 \subsection{Optimal approach}
 
-Fix a target $-p < 0$. Starting from~\eqref{eq:e-evolution} we attempt to choose $r$ in
-such a way that $\mathbb{E}\bigl(e(\bm{\theta}(t))\bigr) = -p$ is achieved for the smallest possible~$t$. To obtain
-$t$ from $r$ we have to solve the following equation:
+Fix a target $-p < 0$. From~\eqref{eq:e-evolution} we choose $r$ so that $\mathbb{E}\bigl(e(\bm{\theta}(t))\bigr) = -p$ is achieved in minimal time $t$. We must solve
 
 
 \[
@@ -589,7 +533,7 @@ with
   \label{eq:abc}
 \end{equation}
 
-After some rescaling to eliminate parameters we obtain the universal equation
+After rescaling we obtain the universal equation
 \begin{equation}
   \exp(-R T) + R\bigl(1-\exp(-R T)\bigr) = p,
 \end{equation}
@@ -604,10 +548,7 @@ with
 
 
 
-Using~\eqref{eq:abc} we may express $T$ in terms of $R$ and $p$. Then we may determine $R$
-such that $\partial T(R,p)/\partial R = 0$. It seems this last step must be done numerically. The
-optimal $R$ as a function of $p$ has a characteristic shape: starting near $0$ at $p=0$, growing to a maximum,
-and then decreasing towards $0$ as $p \to 1$.
+Using~\eqref{eq:abc}, one can express $T$ in terms of $R$ and $p$, then find $R$ such that $\partial T(R,p)/\partial R = 0$. This last step is done numerically. The optimal $R$ as a function of $p$ starts near $0$ at $p=0$, grows to a maximum, then decreases towards $0$ as $p \to 1$.
 
 \section*{References}
 
