@@ -12,6 +12,10 @@
   \defaultfontfeatures{Ligatures=TeX}
 \fi
 
+% Language and quotes
+\usepackage[english]{babel}
+\usepackage{csquotes}
+
 % Math and theorem packages
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{mathtools}
@@ -21,7 +25,10 @@
 \usepackage{geometry}
 \usepackage{microtype}
 \usepackage{booktabs}
+
+% Hyperlinks / references (load near the end)
 \usepackage[hidelinks]{hyperref}
+\usepackage{bookmark}
 \usepackage[nameinlink,noabbrev]{cleveref}
 
 \geometry{margin=1in}
@@ -35,9 +42,24 @@
 \theoremstyle{remark}
 \newtheorem{remark}{Remark}
 
+% Common math operators/macros
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\Hess}{Hess}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\score}{score}
+
 \title{Theoretical Basis of the SPSA Process}
 \author{}
 \date{}
+
+\hypersetup{
+  pdftitle={Theoretical Basis of the SPSA Process},
+  pdfauthor={},
+}
 
 \begin{document}
 \maketitle
@@ -47,15 +69,15 @@
 We analyze an elegant chess-oriented version of the SPSA algorithm invented by
 Stockfish author Joona Kiiski.
 
-Let $(\bm{c}_i)_{i\ge 0}\subset\mathbb{R}^n$ be a sequence of column vectors and let $(r_i)_{i\ge 0}\subset\mathbb{R}_{>0}$. To go from a vector of engine parameters
-
+Let $(\bm{c}_i)_{i\ge 0}\subset\R^n$ be a sequence of column vectors and let
+$(r_i)_{i\ge 0}\subset\R_{>0}$. To go from a vector of engine parameters
 
 \[
-  \bm{\theta}_i=(\theta_i^{(j)})_{j=1}^n\in\mathbb{R}^n
+  \bm{\theta}_i=(\theta_i^{(j)})_{j=1}^n\in\R^n
 \]
 
-
-to a new vector $\bm{\theta}_{i+1}\in\mathbb{R}^n$ we play a match of $\bm{\theta}_i+\bm{c}_i$ against $\bm{\theta}_i-\bm{c}_i$ and set
+to a new vector $\bm{\theta}_{i+1}\in\R^n$ we play a match of
+$\bm{\theta}_i+\bm{c}_i$ against $\bm{\theta}_i-\bm{c}_i$ and set
 \begin{equation}
   \bm{\theta}_{i+1} =
   \begin{cases}
@@ -66,142 +88,141 @@ to a new vector $\bm{\theta}_{i+1}\in\mathbb{R}^n$ we play a match of $\bm{\thet
   \label{eq:update}
 \end{equation}
 
-For exposition we assume games are played with a balanced opening book (practically approximated by replaying games with reversed colors). This avoids systematic opening bias.
+For exposition we assume games are played with a balanced opening book
+(practically approximated by replaying games with reversed colors). This avoids
+systematic opening bias.
 
-\begin{example}
+\begin{example}\label{ex:fdsa}
 Let $c_0,\dots,c_{n-1}>0$ and put
-
 
 \[
   \bm{c}_i = c_{i\bmod n}\,\bm{e}_{i\bmod n},
 \]
 
-
-where $\bm{e}_j$ is the $j$th standard basis vector of $\mathbb{R}^n$. This is a variant of FDSA. Then
-
+where $\bm{e}_j$ is the $j$th standard basis vector of $\R^n$. This is a
+variant of FDSA. Then
 
 \[
-  \mathbb{E}(\bm{c}_i\bm{c}_i^\top)=\operatorname{diag}(c_0^2,\dots,c_{n-1}^2).
+  \E(\bm{c}_i\bm{c}_i^\top)=\diag(c_0^2,\dots,c_{n-1}^2).
 \]
-
-
 \end{example}
 
-\begin{example}
+\begin{example}\label{ex:spsa}
 Let $c_0,\dots,c_{n-1}>0$ and put
-
 
 \[
   \bm{c}_i=\sum_{j=0}^{n-1}\alpha_{i,j}c_j\bm{e}_j,
 \]
 
-
 where each $\alpha_{i,j}$ is chosen uniformly at random in $\{\pm1\}$. Then
 
-
 \[
-  \mathbb{E}(\bm{c}_i\bm{c}_i^\top)=\operatorname{diag}(c_0^2,\dots,c_{n-1}^2).
+  \E(\bm{c}_i\bm{c}_i^\top)=\diag(c_0^2,\dots,c_{n-1}^2).
 \]
-
 
 This is the SPSA algorithm.
 \end{example}
 
 \begin{assumption}
-We assume $(\bm{c}_i\bm{c}_i^\top)_i$ stays close to its short-term running average $\mathbb{E}(\bm{c}_i\bm{c}_i^\top)$ and that this expectation is an invertible $n\times n$ matrix.
+We assume $(\bm{c}_i\bm{c}_i^\top)_i$ stays close to its short-term running
+average $\E(\bm{c}_i\bm{c}_i^\top)$ and that this expectation is an invertible
+$n\times n$ matrix.
 \end{assumption}
 
 \section{Main results}
 
 \subsection{Statements}
 
-Let $e$ map $\bm{\theta}\in\mathbb{R}^n$ to Elo. Assume $e$ is approximately quadratic and attains its maximum at $\bm{\theta}^\ast$, normalized so $e(\bm{\theta}^\ast)=0$.
+Let $e$ map $\bm{\theta}\in\R^n$ to Elo. Assume $e$ is approximately quadratic
+and attains its maximum at $\bm{\theta}^\ast$, normalized so
+$e(\bm{\theta}^\ast)=0$.
 
-Apply generalized SPSA with constant $r$ and with $\bm{c}_i$ satisfying Assumption~\ref{ass:Ecct}.
+Apply generalized SPSA with constant $r$ and with $\bm{c}_i$ satisfying
+\Cref{ass:Ecct}.
 
 \begin{assumption}\label{ass:Ecct}
-For all $i$, $\mathbb{E}(\bm{c}_i\bm{c}_i^\top)$ exists, is constant in $i$, and is invertible.
+For all $i$, $\E(\bm{c}_i\bm{c}_i^\top)$ exists, is constant in $i$, and is
+invertible.
 \end{assumption}
 
 \begin{enumerate}
 \item Asymptotically,
 \begin{equation}
-  \mathbb{E}\bigl(e(\bm{\theta}_i)\bigr)
+  \E\bigl(e(\bm{\theta}_i)\bigr)
   \approx -\frac{r}{8}\,C\,n(1-d),
   \label{eq:main1}
 \end{equation}
 where $d\in[0,1]$ is the draw ratio and
 
-
 \[
   C=\frac{800}{\ln 10}\approx 347.43558552.
 \]
 
-
-
-\item Let $0\le\gamma\le1$ and define $z$ by $\gamma=\mathbb{P}(X<z)$ for $X\sim\chi^2_n$. Then with probability $\gamma$,
+\item Let $0\le\gamma\le1$ and define $z$ by $\gamma=\Prob(X<z)$ for
+$X\sim\chi^2_n$. Then with probability $\gamma$,
 \begin{equation}
   e(\bm{\theta}_i)\gtrsim -\frac{r}{8}\,C\,z(1-d).
   \label{eq:main2}
 \end{equation}
 
-\item The expectation $\mathbb{E}(\bm{\theta}_i)$ converges linearly to $\bm{\theta}^\ast$ with time constant
+\item The expectation $\E(\bm{\theta}_i)$ converges linearly to
+$\bm{\theta}^\ast$ with time constant
 \begin{equation}
   \lambda\approx\frac{C}{2r\mu},
   \label{eq:lambda}
 \end{equation}
 where $\mu$ is the smallest eigenvalue of
 
-
 \[
-  \mathbb{E}(\bm{c}_i\bm{c}_i^\top)\,\operatorname{Hess}(e)(\bm{\theta}^\ast).
+  \E(\bm{c}_i\bm{c}_i^\top)\,\Hess(e)(\bm{\theta}^\ast).
 \]
-
-
 \end{enumerate}
 
 \begin{remark}
-If $\mathbb{E}(\bm{c}_i\bm{c}_i^\top)\,\operatorname{Hess}(e)(\bm{\theta}^\ast)=\mu I_n$, then the average update is proportional to
-
+If $\E(\bm{c}_i\bm{c}_i^\top)\,\Hess(e)(\bm{\theta}^\ast)=\mu I_n$, then the
+average update is proportional to
 
 \[
-  r\,\operatorname{Hess}(e)(\bm{\theta}^\ast)^{-1}(\nabla e)(\bm{\theta}_i),
+  r\,\Hess(e)(\bm{\theta}^\ast)^{-1}(\nabla e)(\bm{\theta}_i),
 \]
-
 
 the optimal descent direction.
 \end{remark}
 
 \subsection{Derivations}
 
-Below vectors are column vectors. Switch to continuous time and write $\bm{\theta}(t)$.
+Below vectors are column vectors. Switch to continuous time and write
+$\bm{\theta}(t)$.
 
 Model the discrete dynamics by the SDE
 \begin{equation}
   d\bm{\theta}_t = r\bm{c}\bigl(\mu_{\theta,\bm{c}}\,dt + \sigma_{\theta,\bm{c}}\,dW_t\bigr),
 \end{equation}
-where $(\mu_{\theta,\bm{c}},\sigma_{\theta,\bm{c}})$ are mean and standard deviation of a single game between $\bm{\theta}\pm\bm{c}$ (scored $-1,0,1$) and $W_t$ is a Wiener process. Assume $\sigma_{\theta,\bm{c}}$ is independent of $\bm{\theta},\bm{c}$ so
+where $(\mu_{\theta,\bm{c}},\sigma_{\theta,\bm{c}})$ are mean and standard
+deviation of a single game between $\bm{\theta}\pm\bm{c}$ (scored $-1,0,1$)
+and $W_t$ is a Wiener process. Assume $\sigma_{\theta,\bm{c}}$ is independent
+of $\bm{\theta},\bm{c}$ so
 \begin{equation}
   \sigma_{\theta,\bm{c}}^2 = 1-d,
   \label{eq:sigma}
 \end{equation}
 with $d$ the draw ratio.
 
-Let $f(\bm{\theta})$ be expected score against a reference engine. Assuming linearity,
-
+Let $f(\bm{\theta})$ be expected score against a reference engine. Assuming
+linearity,
 
 \[
-  \mu_{\theta,\bm{c}} = \operatorname{score}(\bm{\theta}+\bm{c},\bm{\theta}-\bm{c})
+  \mu_{\theta,\bm{c}} = \score(\bm{\theta}+\bm{c},\bm{\theta}-\bm{c})
   = f(\bm{\theta}+\bm{c})-f(\bm{\theta}-\bm{c}) = 2\bm{c}^\top(\nabla f)(\bm{\theta}),
 \]
-
 
 so
 \begin{equation}
   d\bm{\theta}_t = 2r\bm{c}\bm{c}^\top(\nabla f)(\bm{\theta})\,dt + r\sigma_{\theta,\bm{c}}\bm{c}\,dW_t.
 \end{equation}
 
-Replace $\bm{c}\bm{c}^\top$ by its expectation and set $A=r\mathbb{E}(\bm{c}\bm{c}^\top)$ (symmetric). Then
+Replace $\bm{c}\bm{c}^\top$ by its expectation and set
+$A=r\E(\bm{c}\bm{c}^\top)$ (symmetric). Then
 \begin{equation}
   d\bm{\theta}_t = 2A(\nabla f)(\bm{\theta})\,dt + r\sigma_{\theta,\bm{c}}\bm{c}\,dW_t.
 \end{equation}
@@ -226,9 +247,8 @@ The homogeneous solution is $\bm{\theta}(t)=\exp(-2AE t)\bm{D}$. Variation of co
 
 Hence
 
-
 \[
-  \mathbb{E}(\bm{\theta}(t))=\exp(-2AE t)\bm{\theta}(0)=\exp\bigl(-2r\mathbb{E}(\bm{c}\bm{c}^\top)E t\bigr)\bm{\theta}(0),
+  \E(\bm{\theta}(t))=\exp(-2AE t)\bm{\theta}(0)=\exp\bigl(-2r\E(\bm{c}\bm{c}^\top)E t\bigr)\bm{\theta}(0),
 \]
 
 
@@ -236,15 +256,15 @@ which gives the linear convergence in expectation.
 
 For the covariance, replacing $\bm{c}\bm{c}^\top$ by its expectation,
 \begin{align*}
-  \operatorname{Cov}(\bm{\theta}(t))
-  &= r^2\sigma_{\theta,\bm{c}}^2\int_0^t \exp(2AE(s-t))\,\mathbb{E}(\bm{c}\bm{c}^\top)\,\exp(2EA(s-t))\,ds \\
+  \Cov(\bm{\theta}(t))
+  &= r^2\sigma_{\theta,\bm{c}}^2\int_0^t \exp(2AE(s-t))\,\E(\bm{c}\bm{c}^\top)\,\exp(2EA(s-t))\,ds \\
   &= r^2\sigma_{\theta,\bm{c}}^2\int_0^t \exp\bigl(4EA(s-t)\bigr)\,A\,ds,
 \end{align*}
 and if $E$ and $A$ commute,
 
 
 \[
-  \operatorname{Cov}(\bm{\theta}(t))=\frac{r^2\sigma_{\theta,\bm{c}}^2}{4}A^{-1}\bigl(I-\exp(-4EA t)\bigr).
+  \Cov(\bm{\theta}(t))=\frac{r^2\sigma_{\theta,\bm{c}}^2}{4}A^{-1}\bigl(I-\exp(-4EA t)\bigr).
 \]
 
 
@@ -252,7 +272,7 @@ Asymptotically,
 
 
 \[
-  \operatorname{Cov}(\bm{\theta})=\frac{r^2\sigma_{\theta,\bm{c}}^2}{4}A^{-1},
+  \Cov(\bm{\theta})=\frac{r^2\sigma_{\theta,\bm{c}}^2}{4}A^{-1},
 \]
 
 
@@ -270,7 +290,7 @@ Let $E$ be positive-definite symmetric and $\bm{X}\sim\mathcal{N}(\bm{0},E)$. Th
 \end{lemma}
 
 \begin{proof}
-Write $E=PP^\top$ and set $\bm{Y}=P^{-1}\bm{X}$. Then $\operatorname{Cov}(\bm{Y})=I$, so $\bm{Y}^\top\bm{Y}\sim\chi^2_n$. But $\bm{Y}^\top\bm{Y}=\bm{X}^\top E^{-1}\bm{X}$.
+Write $E=PP^\top$ and set $\bm{Y}=P^{-1}\bm{X}$. Then $\Cov(\bm{Y})=I$, so $\bm{Y}^\top\bm{Y}\sim\chi^2_n$. But $\bm{Y}^\top\bm{Y}=\bm{X}^\top E^{-1}\bm{X}$.
 \end{proof}
 
 Combining the lemma with the asymptotic covariance yields the chi-square behaviour of $e(\bm{\theta})$ after scaling via~\eqref{eq:f-e} and~\eqref{eq:sigma}.
@@ -285,11 +305,11 @@ Assume
 \]
 
 
-and $\mathbb{E}(\bm{c}\bm{c}^\top)=\operatorname{diag}(c_0^2,\dots,c_{n-1}^2)$ (Example~1.2). Then each coordinate decouples and
+and $\E(\bm{c}\bm{c}^\top)=\diag(c_0^2,\dots,c_{n-1}^2)$ (\Cref{ex:fdsa}). Then each coordinate decouples and
 
 
 \[
-  \mathbb{E}(\theta_j(t))=\theta_j^\ast + (\theta_j(0)-\theta_j^\ast)\exp\!\Bigl(-\frac{t}{\lambda_j}\Bigr),
+  \E(\theta_j(t))=\theta_j^\ast + (\theta_j(0)-\theta_j^\ast)\exp\!\Bigl(-\frac{t}{\lambda_j}\Bigr),
 \]
 
 
@@ -303,7 +323,7 @@ Moreover,
 
 
 \[
-  \operatorname{Var}(\theta_j(t))=\frac{r(1-d)C}{8\varepsilon_j}\Bigl(1-\exp\bigl(-8r c_j^2\varepsilon_j t/C\bigr)\Bigr),
+  \Var(\theta_j(t))=\frac{r(1-d)C}{8\varepsilon_j}\Bigl(1-\exp\bigl(-8r c_j^2\varepsilon_j t/C\bigr)\Bigr),
 \]
 
 
@@ -311,7 +331,7 @@ and
 
 
 \[
-  \mathbb{E}(e(\bm{\theta}(t)))=\sum_{j=1}^n\Bigl(-\varepsilon_j\exp\bigl(-8r c_j^2\varepsilon_j t/C\bigr)\theta_j(0)^2 + \frac{r(1-d)C}{8}\bigl(1-\exp\bigl(-8r c_j^2\varepsilon_j t/C\bigr)\bigr)\Bigr).
+  \E(e(\bm{\theta}(t)))=\sum_{j=1}^n\Bigl(-\varepsilon_j\exp\bigl(-8r c_j^2\varepsilon_j t/C\bigr)\theta_j(0)^2 + \frac{r(1-d)C}{8}\bigl(1-\exp\bigl(-8r c_j^2\varepsilon_j t/C\bigr)\bigr)\Bigr).
 \]
 
 
@@ -320,7 +340,7 @@ Asymptotically $e(\bm{\theta}(t))$ follows a generalized chi-square distribution
 
 If $c_j^2\varepsilon_j$ is independent of $j$ (so $\lambda_j=\lambda$), then
 \begin{equation}
-  \mathbb{E}(e(\bm{\theta}(t)))=\mathbb{E}(e(\bm{\theta}(0)))\exp(-2t/\lambda)+\mathbb{E}(e(\bm{\theta}))\bigl(1-\exp(-2t/\lambda)\bigr).
+  \E(e(\bm{\theta}(t)))=\E(e(\bm{\theta}(0)))\exp(-2t/\lambda)+\E(e(\bm{\theta}))\bigl(1-\exp(-2t/\lambda)\bigr).
   \label{eq:e-evolution}
 \end{equation}
 
@@ -338,7 +358,7 @@ with
 
 
 \[
-  p_0=-\mathbb{E}(e(\bm{\theta}(0))),\qquad a=\frac{8c_j^2\varepsilon_j}{C},\qquad b=\frac{n(1-d)C}{8}.
+  p_0=-\E(e(\bm{\theta}(0))),\qquad a=\frac{8c_j^2\varepsilon_j}{C},\qquad b=\frac{n(1-d)C}{8}.
 \]
 
 
