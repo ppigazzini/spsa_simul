@@ -28,7 +28,7 @@
 \section{The SPSA ``process''}
 
 We analyze an elegant chess–oriented version of the SPSA algorithm invented by
-Stockfish author Joona Kiiski~\cite{Kiiski}.
+Stockfish author Joona Kiiski.
 
 Let $(\bm{c}_i)_{i \ge 0} \subset \mathbb{R}^n$ be a sequence of column vectors and let $(r_i)_{i \ge 0} \subset \mathbb{R}_{>0}$. To
 go from a vector of engine parameters
@@ -43,10 +43,10 @@ to a new vector $\bm{\theta}_{i+1} \in \mathbb{R}^n$ we play a match of $\bm{\th
 \begin{equation}
   \bm{\theta}_{i+1} =
   \begin{cases}
-    \bm{\theta}_i + r_i \bm{c}_i & \text{in case of a win},\
+    \bm{\theta}_i + r_i \bm{c}_i & \text{in case of a win}, \
 
 \[4pt]
-    \bm{\theta}_i                & \text{in case of a draw},\
+    \bm{\theta}_i                & \text{in case of a draw}, \
 
 \[4pt]
     \bm{\theta}_i - r_i \bm{c}_i & \text{in case of a loss.}
