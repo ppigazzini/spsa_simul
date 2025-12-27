@@ -1,0 +1,28 @@
+name: Build LaTeX PDF
+
+on:
+  push:
+    branches: [ refactor ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: doc/theoretical_basis.tex
+          latexmk_use_lualatex: false
+          latexmk_shell_escape: true
+          extra_system_packages: "ghostscript"
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: theoretical_basis
+          path: doc/theoretical_basis.pdf

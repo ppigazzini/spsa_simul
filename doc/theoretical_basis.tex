@@ -1,0 +1,648 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+\geometry{margin=1in}
+
+\newtheorem{example}{Example}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+\newtheorem{lemma}{Lemma}
+
+\title{Theoretical Basis of the SPSA Process}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{The SPSA ``process''}
+
+We analyze an elegant chess–oriented version of the SPSA algorithm invented by
+Stockfish author Joona Kiiski~\cite{Kiiski}.
+
+Let $(\bm{c}_i)_{i \ge 0} \subset \mathbb{R}^n$ be a sequence of column vectors and let $(r_i)_{i \ge 0} \subset \mathbb{R}_{>0}$. To
+go from a vector of engine parameters
+
+
+\[
+  \bm{\theta}_i = (\theta_i^{(j)})_{j=1}^n \in \mathbb{R}^n
+\]
+
+
+to a new vector $\bm{\theta}_{i+1} \in \mathbb{R}^n$ we play a match of $\bm{\theta}_i + \bm{c}_i$ against $\bm{\theta}_i - \bm{c}_i$ and put
+\begin{equation}
+  \bm{\theta}_{i+1} =
+  \begin{cases}
+    \bm{\theta}_i + r_i \bm{c}_i & \text{in case of a win},\
+
+\[4pt]
+    \bm{\theta}_i                & \text{in case of a draw},\
+
+\[4pt]
+    \bm{\theta}_i - r_i \bm{c}_i & \text{in case of a loss.}
+  \end{cases}
+  \label{eq:update}
+\end{equation}
+
+Since we have biased\footnote{For the purpose of exposition we assume that the games are played with an opening book that
+is perfectly balanced. In practice this will never be satisfied but one may simulate it by replaying
+every game with reversed colors. This will be assumed silently below.}
+the update of $\bm{\theta}_i$ in the direction of the engine that won the
+game, the hope is that $\bm{\theta}_i$ for $i > 0$ will yield a stronger engine than $\bm{\theta}_0$.
+
+The next two examples illustrate standard choices for $\bm{c}_i$.
+
+\begin{example}
+Let $c_0,\dots,c_{n-1} > 0$ and put
+
+
+\[
+  \bm{c}_i = c_{i \bmod n} \,\bm{e}_{i \bmod n},
+\]
+
+
+where $\bm{e}_j$ is the $j$th standard basis vector of $\mathbb{R}^n$. This is a variant of the FDSA algorithm. We have
+
+
+\[
+  \mathbb{E}(\bm{c}_i \bm{c}_i^\top) = \operatorname{diag}(c_0^2,\dots,c_{n-1}^2).
+\]
+
+
+\end{example}
+
+\begin{example}
+Let $c_0,\dots,c_{n-1} > 0$ and put
+
+
+\[
+  \bm{c}_i = \sum_{j=0}^{n-1} \alpha_{i,j} c_j \bm{e}_j
+\]
+
+
+where each $\alpha_{i,j}$ is chosen uniformly at random in $\{\pm 1\}$. Then
+
+
+\[
+  \mathbb{E}(\bm{c}_i \bm{c}_i^\top) = \operatorname{diag}(c_0^2,\dots,c_{n-1}^2).
+\]
+
+
+This is the SPSA algorithm.
+\end{example}
+
+\begin{assumption}
+We allow $(\bm{c}_i)_{i \ge 0}$ to be stochastic but throughout we assume that
+$(\bm{c}_i \bm{c}_i^\top)_i$ stays close to its short–term running average / expectation value (denoted by
+$\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$) and that the latter is an invertible $n \times n$ matrix.
+\end{assumption}
+
+\section{Main results}
+
+\subsection{Statements}
+
+Let $e$ be the function which maps $\bm{\theta} \in \mathbb{R}^n$ to Elo. Assume
+that $e$ is (approximately) quadratic and attains its maximum value at $\bm{\theta} = \bm{\theta}^\ast$. We
+normalize $e$ such that $e(\bm{\theta}^\ast) = 0$.
+
+Apply the generalized SPSA algorithm with constant $r$ and with $\bm{c}_i$ satisfying
+Assumption~\ref{ass:Ecct} below such that $\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$ is constant. We will heuristically derive some
+reasonable approximations.
+
+\begin{assumption}
+\label{ass:Ecct}
+For all $i$, $\mathbb{E}(\bm{c}_i \bm{c}_i^\top)$ exists, is constant in $i$, and is invertible.
+\end{assumption}
+
+\begin{enumerate}
+\item Asymptotically the expectation value of $e(\bm{\theta}_i)$ will satisfy
+\begin{equation}
+  \mathbb{E}\bigl(e(\bm{\theta}_i)\bigr)
+  \;\approx\;
+  - \frac{r}{8}\, C\, n (1-d),
+  \label{eq:main1}
+\end{equation}
+with $d \in [0,1]$ being equal to the draw ratio\footnote{With an unbalanced book and replayed color–reversed games the factor $1-d$ in the formula
+can be reduced to $1-d-4b^2$ where $b$ is the RMS bias of the opening book (computed using
+$0, 1/2, 1$ scoring, see~\cite{AccountingIdentity}). The same holds true for similar formulas below.}
+and
+
+
+\[
+  C = \frac{800}{\ln 10} \approx 347.43558552.
+\]
+
+
+
+\item Let $0 \le \gamma \le 1$ and define $z$ by
+
+
+\[
+  \gamma = \mathbb{P}(X < z) \quad\text{for}\quad X \sim \chi^2_n.
+\]
+
+
+For example, for $\gamma = 0.95$ we have in low dimensions:
+\begin{center}
+\begin{tabular}{@{}cc@{}}
+\toprule
+\textbf{dim} & \textbf{$z$} \\
+\midrule
+1 & 3.8414588206941236 \\
+2 & 5.9914645471079799 \\
+3 & 7.8147279032511765 \\
+4 & 9.4877290367811540 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+With probability $\gamma$, $e(\bm{\theta}_i)$ will asymptotically satisfy
+\begin{equation}
+  e(\bm{\theta}_i)
+  \;\gtrsim\;
+  - \frac{r}{8}\, C\, z (1-d).
+  \label{eq:main2}
+\end{equation}
+
+\item The expectation value of $\bm{\theta}_i$ will converge linearly towards $\bm{\theta}^\ast$ as
+\begin{equation}
+  \|\mathbb{E}(\bm{\theta}_i - \bm{\theta}^\ast)\|
+  \approx
+  \|\bm{\theta}_0 - \bm{\theta}^\ast\| \, e^{-i/\lambda}
+  \label{eq:main3}
+\end{equation}
+with the time constant $\lambda$ bounded by
+\begin{equation}
+  \lambda \;\approx\; \frac{C}{2 r \mu},
+  \label{eq:lambda}
+\end{equation}
+where $\mu$ is the smallest eigenvalue of
+
+
+\[
+  \mathbb{E}(\bm{c}_i \bm{c}_i^\top)\, \operatorname{Hess}(e)(\bm{\theta}^\ast).
+\]
+
+
+\end{enumerate}
+
+\begin{remark}
+We see from (3) that the nicest possible case is when
+
+
+\[
+  \mathbb{E}(\bm{c}_i \bm{c}_i^\top)\, \operatorname{Hess}(e)(\bm{\theta}^\ast) = \mu I_{n}.
+\]
+
+
+It follows from the derivation below that in that case the update~\eqref{eq:update} is (on average)
+proportional to
+
+
+\[
+  r\, \operatorname{Hess}(e)(\bm{\theta}^\ast)^{-1} \bigl(\nabla e\bigr)(\bm{\theta}_i),
+\]
+
+
+which is in particular the optimal direction for gradient descent.
+\end{remark}
+
+\subsection{Derivations}
+
+Below vectors are always column vectors. We will also switch
+to continuous time. Hence we write $\bm{\theta}(t)$ (or simply $\bm{\theta}$) instead of $\bm{\theta}_i$, etc.
+
+We can think of the dynamics of $\bm{\theta}$ as a discrete version of the continuous process
+\begin{equation}
+  d\bm{\theta}_t
+  = r \bm{c}\,\bigl(\mu_{\theta,\bm{c}}\,dt + \sigma_{\theta,\bm{c}}\,dW_t\bigr),
+\end{equation}
+where $(\mu_{\theta,\bm{c}}, \sigma_{\theta,\bm{c}})$ are the mean and standard deviation of a single game between
+parameters $\bm{\theta} \pm \bm{c}$ (scored as $-1,0,1$) and $W_t$ is a Wiener process (Brownian motion).
+We simplify further and assume that $\sigma_{\theta,\bm{c}}$ is independent of $\bm{\theta}, \bm{c}$ so that
+\begin{equation}
+  \sigma_{\theta,\bm{c}}^2 = 1 - d,
+  \label{eq:sigma}
+\end{equation}
+where $d$ is the draw ratio.
+
+Let $f(\bm{\theta})$ be the function that maps $\bm{\theta}$ to the expected score against a reference
+engine (scored as $-1,0,1$). Assuming linearity we get
+\begin{align*}
+  \mu_{\theta,\bm{c}}
+  &= \operatorname{score}(\bm{\theta}+\bm{c},\bm{\theta}-\bm{c}) \\
+  &= f(\bm{\theta}+\bm{c}) - f(\bm{\theta}-\bm{c})
+   = 2 \bm{c}^\top (\nabla f)(\bm{\theta}),
+\end{align*}
+and hence
+\begin{equation}
+  d\bm{\theta}_t
+  = 2 r \bm{c}\bm{c}^\top (\nabla f)(\bm{\theta})\,dt
+    + r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t.
+\end{equation}
+
+We now replace $\bm{c}\bm{c}^\top$ by its short–term average / expectation value which we denote
+by $\mathbb{E}(\bm{c}\bm{c}^\top)$ and we put
+
+
+\[
+  A = r\,\mathbb{E}(\bm{c}\bm{c}^\top).
+\]
+
+
+Note that $A$ is symmetric. We obtain
+\begin{equation}
+  d\bm{\theta}_t
+  = 2 A (\nabla f)(\bm{\theta})\,dt + r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t.
+\end{equation}
+
+The conversion between $f$ and $e$ is approximately given by
+\begin{equation}
+  f(\bm{\theta}) = \frac{e(\bm{\theta})}{C}.
+  \label{eq:f-e}
+\end{equation}
+So $f$ is approximately quadratic as well. Hence (translating such that $\bm{\theta}^\ast = \bm{0}$)
+we may write
+
+
+\[
+  f(\bm{\theta}) = -\tfrac{1}{2} \bm{\theta}^\top E \bm{\theta},
+\]
+
+
+with $E$ a positive–definite symmetric $n \times n$ matrix. So
+
+
+\[
+  (\nabla f)(\bm{\theta}) = - E \bm{\theta},
+\]
+
+
+from which we get
+\begin{equation}
+  d\bm{\theta}_t
+  = -2 A E \bm{\theta}\,dt + r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t.
+\end{equation}
+
+The solution of the corresponding homogeneous equation
+
+
+\[
+  d\bm{\theta}_t = -2 A E \bm{\theta}\,dt
+\]
+
+
+is given by
+
+
+\[
+  \bm{\theta}(t) = \exp(-2 A E t)\,\bm{D},
+\]
+
+
+where $\bm{D}$ is a constant column vector. We now solve the inhomogeneous system
+using variation of constants (i.e.\ we make $\bm{D}$ depend on $t$). We get
+
+
+\[
+  \exp(-2 A E t)\, d\bm{D}(t) = r \sigma_{\theta,\bm{c}} \bm{c}\,dW_t,
+\]
+
+
+hence
+
+
+\[
+  \bm{D}(t)
+  = \bm{D}(0)
+    + r \sigma_{\theta,\bm{c}} \int_0^t \exp(2 A E s)\,\bm{c}\,dW_s.
+\]
+
+
+So
+\begin{equation}
+  \bm{\theta}(t)
+  = \exp(-2 A E t)\,\bm{\theta}(0)
+    + r \sigma_{\theta,\bm{c}} \int_0^t \exp(2 A E (s-t))\,\bm{c}\,dW_s.
+\end{equation}
+
+Thus $\bm{\theta}(t)$ is multivariate normal with expectation value
+
+
+\[
+  \mathbb{E}(\bm{\theta}(t))
+  = \exp(-2 A E t)\,\bm{\theta}(0)
+  = \exp\bigl(-2 r\,\mathbb{E}(\bm{c}\bm{c}^\top) E\,t\bigr)\,\bm{\theta}(0),
+\]
+
+
+from which we deduce the convergence behaviour in (3), using the conversion~\eqref{eq:f-e} combined with~\eqref{eq:sigma}.
+
+We now calculate the covariance of $\bm{\theta}(t)$. Using the stochastic integral term and again replacing $\bm{c}\bm{c}^\top$ by its
+average, we obtain
+\begin{align*}
+  \operatorname{Cov}(\bm{\theta}(t))
+  &= r^2 \sigma_{\theta,\bm{c}}^2
+     \int_0^t \exp(2 A E (s-t))\,\bm{c}\bm{c}^\top\,\exp(2 E A (s-t))\,ds \\
+  &\approx r^2 \sigma_{\theta,\bm{c}}^2
+     \int_0^t \exp(2 A E (s-t))\,\mathbb{E}(\bm{c}\bm{c}^\top)\,\exp(2 E A (s-t))\,ds \\
+  &= r^2 \sigma_{\theta,\bm{c}}^2
+     \int_0^t \exp\bigl(4 E A (s-t)\bigr)\,A\,ds.
+\end{align*}
+
+Under the simplifying assumption that $E$ and $A$ commute, we get
+
+
+\[
+  \operatorname{Cov}(\bm{\theta}(t))
+  = \frac{r^2 \sigma_{\theta,\bm{c}}^2}{4}\,
+    A^{-1} \bigl(I - \exp(-4 E A t)\bigr).
+\]
+
+
+Hence asymptotically
+
+
+\[
+  \operatorname{Cov}(\bm{\theta})
+  = \frac{r^2 \sigma_{\theta,\bm{c}}^2}{4}\,A^{-1},
+\]
+
+
+and so asymptotically the distribution of $\bm{\theta}$ is
+
+
+\[
+  \bm{\theta} \sim \mathcal{N}\!\left(\bm{0},\,\frac{r^2 \sigma_{\theta,\bm{c}}^2}{4}\,A^{-1}\right).
+\]
+
+
+
+Recall the following.
+
+\begin{lemma}
+Let $E$ be a positive–definite symmetric $n \times n$ matrix and
+
+
+\[
+  \bm{X} \sim \mathcal{N}(\bm{0}, E).
+\]
+
+
+Then
+
+
+\[
+  \bm{X}^\top E^{-1} \bm{X} \sim \chi^2_n.
+\]
+
+
+\end{lemma}
+
+\begin{proof}
+We may write $E = P P^\top$ with $P$ invertible. Put $\bm{Y} = P^{-1} \bm{X}$. Then
+
+
+\[
+  \operatorname{Cov}(\bm{Y})
+  = P^{-1} \operatorname{Cov}(\bm{X}) (P^{-1})^\top
+  = P^{-1} E (P^{-1})^\top
+  = P^{-1} P P^\top (P^{-1})^\top
+  = I.
+\]
+
+
+Hence $\bm{Y} \sim \mathcal{N}(\bm{0}, I)$ and thus $\bm{Y}^\top \bm{Y} \sim \chi^2_n$. But
+
+
+\[
+  \bm{Y}^\top \bm{Y}
+  = \bm{X}^\top (P^{-1})^\top P^{-1} \bm{X}
+  = \bm{X}^\top E^{-1} \bm{X}.
+\]
+
+
+\end{proof}
+
+From this lemma and the asymptotic covariance we obtain that, up to scaling, $e(\bm{\theta})$ follows (asymptotically) a chi–square law, which yields the qualitative behaviour stated in (1) and (2), once we translate back via~\eqref{eq:f-e} and~\eqref{eq:sigma}.
+
+\subsection{The case of diagonal Hessian}
+
+In this section we assume
+
+
+\[
+  e(\bm{\theta}) = -\sum_{j=1}^n \varepsilon_j \theta_j^2
+\]
+
+
+and furthermore that we are in the situation of Example~1.2 so that
+
+
+\[
+  \mathbb{E}(\bm{c}\bm{c}^\top) = \operatorname{diag}(c_0^2,\dots,c_{n-1}^2).
+\]
+
+
+
+Then Statement (3) may be refined as follows.
+
+\begin{enumerate}
+\setcounter{enumi}{3}
+\item The expectation value of $\theta_j(t)$, $j = 1,\dots,n$, will converge linearly towards
+$\theta_j^\ast$ as
+
+
+\[
+  \mathbb{E}\bigl(\theta_j(t)\bigr)
+  = \theta_j^\ast
+    + \bigl(\theta_j(0) - \theta_j^\ast\bigr) \exp\!\Bigl(-\frac{t}{\lambda_j}\Bigr),
+\]
+
+
+with the time constant $\lambda_j$ given by
+\begin{equation}
+  \lambda_j
+  = \frac{C}{8 r c_j^2 \varepsilon_j}.
+  \label{eq:lambda_j}
+\end{equation}
+\end{enumerate}
+
+We will now discuss some more detailed results. We have that each $\theta_j(t)$ is normally
+distributed, and moreover
+
+
+\[
+  \operatorname{Var}\bigl(\theta_j(t)\bigr)
+  = \frac{r(1-d)C}{8\varepsilon_j}
+    \Bigl(1 - \exp\bigl(-8 r c_j^2 \varepsilon_j t / C\bigr)\Bigr).
+\]
+
+
+
+In particular we obtain
+
+
+\[
+  \mathbb{E}\bigl(\theta_j(t)\bigr)
+  = \exp\bigl(-4 r c_j^2 \varepsilon_j t / C\bigr)\,\theta_j(0),
+\]
+
+
+and
+
+
+\[
+  \mathbb{E}\bigl(e(\bm{\theta}(t))\bigr)
+  = \sum_{j=1}^n \left(
+      -\varepsilon_j \exp\bigl(-8 r c_j^2 \varepsilon_j t / C\bigr)\,\theta_j(0)^2
+      + \frac{r(1-d)C}{8}\Bigl(1 - \exp\bigl(-8 r c_j^2 \varepsilon_j t / C\bigr)\Bigr)
+    \right).
+\]
+
+
+
+Furthermore $e(\bm{\theta}(t))$ follows a generalized chi–square distribution~\cite{wiki:generalized-chi2}. The SPSA simula\-tor~\cite{spsa_simul}
+contains routines to calculate the cumulative distribution function (CDF) and
+the percent point function (PPF) for the generalized chi–square distribution. The CDF
+routine was originally based on MATLAB code written by Abhranil Das~\cite{Das}
+and is based on Ruben's algorithm~\cite{Ruben}. Essentially, in Ruben's algorithm one develops
+the characteristic function $\varphi(t)$ of a generalized chi–square distribution as a power series in
+$(1-2 i t \rho)^{-1/2}$ for a suitably chosen $\rho$. This leads to a description of the generalized
+chi–square distribution as a mixture of ordinary scaled $\chi^2_{n-2i}$–distributions for $i \ge 0$.
+
+It follows from Ruben's formulas that if
+
+
+\[
+  \exp\bigl(-8 r c_j^2 \varepsilon_j t / C\bigr)
+  = \exp\bigl(-2t/\lambda_j\bigr)
+\]
+
+
+is small, then the distribution of $e(\bm{\theta}(t))$ satisfies approximately
+
+
+\[
+  \frac{n\,e(\bm{\theta}(t))}{\mathbb{E}(e(\bm{\theta}(t)))} \sim \chi^2_n.
+\]
+
+
+
+We have also shown that asymptotically
+
+
+\[
+  \frac{e(\bm{\theta})}{\mathbb{E}(e(\bm{\theta}))} \sim \chi^2_n,
+\]
+
+
+so
+
+
+\[
+  \frac{n\,e(\bm{\theta}(0))}{\mathbb{E}(e(\bm{\theta}(0)))}
+  \quad\text{and}\quad
+  \frac{e(\bm{\theta}(t))}{\mathbb{E}(e(\bm{\theta}(t)))}
+\]
+
+
+serve as scale factors to translate asymptotic location quantities (e.g.\ mean and
+percentiles) into the corresponding quantities at time $t$ for $t \gg 0$.
+
+Let us finally note that if $c_j^2 \varepsilon_j$ is independent of $j$ so that we can put $\lambda = \lambda_j$, then
+we get the following elegant formula
+\begin{equation}
+  \mathbb{E}\bigl(e(\bm{\theta}(t))\bigr)
+  = \mathbb{E}\bigl(e(\bm{\theta}(0))\bigr)\exp(-2t/\lambda)
+    + \mathbb{E}\bigl(e(\bm{\theta})\bigr)\bigl(1-\exp(-2t/\lambda)\bigr).
+  \label{eq:e-evolution}
+\end{equation}
+
+\subsection{Optimal approach}
+
+Fix a target $-p < 0$. Starting from~\eqref{eq:e-evolution} we attempt to choose $r$ in
+such a way that $\mathbb{E}\bigl(e(\bm{\theta}(t))\bigr) = -p$ is achieved for the smallest possible~$t$. To obtain
+$t$ from $r$ we have to solve the following equation:
+
+
+\[
+  p = p_0 \exp(-a r t) + b r \bigl(1-\exp(-a r t)\bigr),
+\]
+
+
+with
+\begin{equation}
+  p_0 = -\mathbb{E}\bigl(e(\bm{\theta}(0))\bigr), \qquad
+  a = \frac{8 c_j^2 \varepsilon_j}{C}, \qquad
+  b = \frac{n(1-d) C}{8}.
+  \label{eq:abc}
+\end{equation}
+
+After some rescaling to eliminate parameters we obtain the universal equation
+\begin{equation}
+  \exp(-R T) + R\bigl(1-\exp(-R T)\bigr) = p,
+\end{equation}
+with
+
+
+\[
+  R = \frac{b r}{p_0}, \qquad
+  p = \frac{p}{p_0}, \qquad
+  T = a t.
+\]
+
+
+
+Using~\eqref{eq:abc} we may express $T$ in terms of $R$ and $p$. Then we may determine $R$
+such that $\partial T(R,p)/\partial R = 0$. It seems this last step must be done numerically. The
+optimal $R$ as a function of $p$ has a characteristic shape: starting near $0$ at $p=0$, growing to a maximum,
+and then decreasing towards $0$ as $p \to 1$.
+
+\section*{References}
+
+\begin{thebibliography}{9}
+
+\bibitem{wiki:generalized-chi2}
+Wikipedia contributors, \emph{Generalized chi-squared distribution},
+\url{https://en.wikipedia.org/w/index.php?title=Generalized_chi-squared_distribution&oldid=958566492}.
+
+\bibitem{Das}
+A.~Das,
+\emph{MATLAB toolbox for classifying amongst normal distributions},
+\url{https://github.com/abhranildas/classify}.
+
+\bibitem{Kiiski}
+J.~Kiiski,
+\emph{SPSA Tuner for Stockfish Chess Engine},
+\url{https://github.com/zamar/spsa}.
+
+\bibitem{Ruben}
+H.~Ruben,
+Probability content of regions under spherical normal distributions. IV. The distribution of homogeneous and non-homogeneous quadratic functions of normal variables,
+\emph{Ann. Math. Statist.} 33 (1962), 542--570.
+
+\bibitem{spsa_simul}
+M.~Van den Bergh,
+\emph{A multi threaded simulator for the chess version of the SPSA algorithm
+created by Joona Kiiski},
+\url{https://github.com/vdbergh/spsa_simul}.
+
+\bibitem{AccountingIdentity}
+\emph{The accounting identity},
+\url{http://hardy.uhasselt.be/Fishtest/accounting_identity.pdf}.
+
+\end{thebibliography}
+
+\end{document}
+
